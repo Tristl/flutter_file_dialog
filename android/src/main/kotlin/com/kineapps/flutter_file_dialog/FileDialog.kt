@@ -137,7 +137,7 @@ class FileDialog(
             intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
         }
         // applyMimeTypesFilterToIntent(mimeTypesFilter, intent)
-        intent.type = "application/pdf"
+        intent.type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
         activity.startActivityForResult(intent, REQUEST_CODE_SAVE_FILE)
 
