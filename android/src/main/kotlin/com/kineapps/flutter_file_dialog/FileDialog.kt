@@ -30,7 +30,7 @@ private const val REQUEST_CODE_SAVE_FILE = 19112
 // https://developer.android.com/reference/android/content/Intent.html#ACTION_CREATE_DOCUMENT
 // https://android.googlesource.com/platform/development/+/master/samples/ApiDemos/src/com/example/android/apis/content/DocumentsSample.java
 class FileDialog(
-        private val activity: Activity
+        private var activity: Activity?
 ) : PluginRegistry.ActivityResultListener {
 
     private var pendingResult: MethodChannel.Result? = null
@@ -40,6 +40,10 @@ class FileDialog(
     // file to be saved
     private var sourceFile: File? = null
     private var isSourceFileTemp: Boolean = false
+
+    fun setActivity(activity: Activity?) {
+        this.activity = activity
+    }
 
     fun pickDirectory(result: MethodChannel.Result) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
@@ -51,6 +55,14 @@ class FileDialog(
             return
         }
 
+        if (activity == null) {
+            finishWithError(
+                "internal_error",
+                "No activity is available",
+                "")
+            return
+        }
+
         Log.d(LOG_TAG, "pickDirectory - IN")
 
         if (!setPendingResult(result)) {
@@ -59,7 +71,7 @@ class FileDialog(
         }
 
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-        activity.startActivityForResult(intent, REQUEST_CODE_PICK_DIR)
+        activity?.startActivityForResult(intent, REQUEST_CODE_PICK_DIR)
 
         Log.d(LOG_TAG, "pickDirectory - OUT")
     }
@@ -76,6 +88,14 @@ class FileDialog(
     ) {
         Log.d(LOG_TAG, "pickFile - IN, fileExtensionsFilter=$fileExtensionsFilter, mimeTypesFilter=$mimeTypesFilter, localOnly=$localOnly, copyFileToCacheDir=$copyFileToCacheDir")
 
+        if (activity == null) {
+            finishWithError(
+                "internal_error",
+                "No activity is available",
+                "")
+            return
+        }
+
         if (!setPendingResult(result)) {
             finishWithAlreadyActiveError(result)
             return
@@ -91,7 +111,7 @@ class FileDialog(
         }
         applyMimeTypesFilterToIntent(mimeTypesFilter, intent)
 
-        activity.startActivityForResult(intent, REQUEST_CODE_PICK_FILE)
+        activity?.startActivityForResult(intent, REQUEST_CODE_PICK_FILE)
 
         Log.d(LOG_TAG, "pickFile - OUT")
     }
@@ -139,7 +159,15 @@ class FileDialog(
         // applyMimeTypesFilterToIntent(mimeTypesFilter, intent)
         intent.type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
-        activity.startActivityForResult(intent, REQUEST_CODE_SAVE_FILE)
+        if (activity == null) {
+            finishWithError(
+                "internal_error",
+                "No activity is available",
+                "")
+            return
+        }
+
+        activity?.startActivityForResult(intent, REQUEST_CODE_SAVE_FILE)
 
         Log.d(LOG_TAG, "saveFile - OUT")
     }
@@ -158,6 +186,14 @@ class FileDialog(
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+        if (activity == null) {
+            finishWithError(
+                "internal_error",
+                "No activity is available",
+                "")
+            return true
+        }
+
         when (requestCode) {
             REQUEST_CODE_PICK_DIR -> {
                 if (resultCode == Activity.RESULT_OK && data?.data != null) {
@@ -178,7 +214,7 @@ class FileDialog(
                     if (destinationFileName != null && validateFileExtension(destinationFileName)) {
                         if (copyPickedFileToCacheDir) {
                             copyFileToCacheDirOnBackground(
-                                    context = activity,
+                                    context = activity!!,
                                     sourceFileUri = sourceFileUri!!,
                                     destinationFileName = destinationFileName)
                         } else {
@@ -268,7 +304,7 @@ class FileDialog(
             return null
         }
         var fileName: String? = null
-        activity.contentResolver.query(uri, null, null, null, null, null)?.use { cursor ->
+        activity?.contentResolver?.query(uri, null, null, null, null, null)?.use { cursor ->
             if (cursor.moveToFirst()) {
                 fileName = cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
             }
@@ -287,7 +323,7 @@ class FileDialog(
 
     private fun validateFileExtension(filePath: String): Boolean {
         val validFileExtensions = fileExtensionsFilter
-        if (validFileExtensions == null || validFileExtensions.isEmpty()) {
+        if (validFileExtensions.isNullOrEmpty()) {
             return true
         }
         val fileExtension = getFileExtension(filePath) ?: return false
@@ -333,7 +369,7 @@ class FileDialog(
     ): String {
         Log.d(LOG_TAG, "Saving file '${sourceFile.path}' to '${destinationFileUri.path}'")
         sourceFile.inputStream().use { inputStream ->
-            activity.contentResolver.openOutputStream(destinationFileUri).use { outputStream ->
+            activity?.contentResolver?.openOutputStream(destinationFileUri).use { outputStream ->
                 outputStream as java.io.FileOutputStream
                 outputStream.channel.truncate(0)
                 inputStream.copyTo(outputStream!!)
