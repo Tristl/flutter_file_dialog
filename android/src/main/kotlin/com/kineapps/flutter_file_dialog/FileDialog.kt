@@ -122,7 +122,7 @@ class FileDialog(
                  fileName: String?,
                  mimeTypesFilter: Array<String>?,
                  localOnly: Boolean,
-                 mimeType: String
+                 mimeType: String?
     ) {
         Log.d(LOG_TAG, "saveFile - IN, sourceFilePath=$sourceFilePath, " +
                 "data=${data?.size} bytes, fileName=$fileName, " +
