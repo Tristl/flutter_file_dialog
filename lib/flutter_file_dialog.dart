@@ -217,7 +217,7 @@ class SaveFileDialogParams {
   /// Access files in local device only (Android)?
   final bool localOnly;
 
-  final String mimeType;
+  final String? mimeType;
 
   /// Create parameters for the [saveFile] method.
   const SaveFileDialogParams({
@@ -232,7 +232,7 @@ class SaveFileDialogParams {
         assert(sourceFilePath != null || data != null,
             'Missing sourceFilePath or data'),
   assert(data == null || (mimeType != null && mimeType != ''),
-            'Missing fileName'),
+            'Missing mimeType'),
         assert(data == null || (fileName != null && fileName != ''),
             'Missing fileName');
 
