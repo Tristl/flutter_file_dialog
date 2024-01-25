@@ -121,7 +121,8 @@ class FileDialog(
                  data: ByteArray?,
                  fileName: String?,
                  mimeTypesFilter: Array<String>?,
-                 localOnly: Boolean
+                 localOnly: Boolean,
+                 mimeType: String
     ) {
         Log.d(LOG_TAG, "saveFile - IN, sourceFilePath=$sourceFilePath, " +
                 "data=${data?.size} bytes, fileName=$fileName, " +
@@ -157,7 +158,7 @@ class FileDialog(
             intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
         }
         // applyMimeTypesFilterToIntent(mimeTypesFilter, intent)
-        intent.type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        intent.type = mimeType
 
         if (activity == null) {
             finishWithError(
